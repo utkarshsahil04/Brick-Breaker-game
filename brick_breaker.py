@@ -8,14 +8,14 @@ WIDTH,HEIGHT=800,600
 BG_color=(0,0,0)
 screen=pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Brick breaker game ")
-
+# Color name with color code for easy reference
 class Colors:
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
-
+# Game configuration all the parameters are here 
 class GameConfig:
     WIDTH = 800
     HEIGHT = 600
@@ -28,7 +28,7 @@ class GameConfig:
     BRICK_PADDING = 10
     BALL_SPEED = 5
     POINTS_PER_BRICK=10
-
+# Paddle class for the player control
 class Paddle:
     def __init__(self):
         self.height=GameConfig.PADDLE_HEIGHT
@@ -39,14 +39,17 @@ class Paddle:
         self.rect=pygame.Rect(self.x,self.y,self.width,self.height)
 
     def update(self):
+        #move paddle with the mouse
         mouse_x, _ = pygame.mouse.get_pos()  
         self.x=mouse_x-self.width//2
         self.x = max(0, min(self.x, WIDTH - self.width))
         self.rect.x=self.x
         
     def draw(self,screen):
+        # draw paddle on the screen
         pygame.draw.rect(screen, Colors.WHITE, self.rect)
 
+# Ball class for the movements and collision
 class Ball:
     def __init__(self):
         self.radius=GameConfig.BALL_RADIUS
@@ -58,12 +61,15 @@ class Ball:
         self.rect=pygame.Rect(self.x-self.radius,self.y-self.radius,self.radius*2,self.radius*2)
 
     def reset_position(self):
+        #Reset ball position after losing life
         self.x=GameConfig.WIDTH//2
         self.y=GameConfig.HEIGHT-60
         self.speed_x=GameConfig.BALL_SPEED
         self.speed_y=-GameConfig.BALL_SPEED
         self.rect=pygame.Rect(self.x-self.radius,self.y-self.radius,self.radius*2,self.radius*2)
+
     def move(self):
+        # move the ball and handle screen collision 
         self.x+=self.speed_x
         self.y+=self.speed_y
 
@@ -75,6 +81,7 @@ class Ball:
 
         
     def paddle_handle_collision(self,paddle):
+        # handle collision with the paddle with angles based collision
         if self.rect.colliderect(paddle.rect):
             relative_intersect_x = (paddle.rect.x + paddle.rect.width/2) - self.x
             normalized_relative_intersect_x = relative_intersect_x / (paddle.rect.width/2)
@@ -84,8 +91,10 @@ class Ball:
             self.y=paddle.rect.top-self.radius
     
     def draw(self,screen):
+        # draw the ball on the screen
         pygame.draw.circle(screen, Colors.RED, (int(self.x), int(self.y)), self.radius)
 
+#Brick class 
 class Brick:
     def __init__(self,x,y ):
         self.rect = pygame.Rect(x, y, GameConfig.BRICK_WIDTH, GameConfig.BRICK_HEIGHT)
@@ -94,6 +103,7 @@ class Brick:
     def draw(self,screen):
         pygame.draw.rect(screen, Colors.RED, self.rect)
 
+# Main game code
 class Game:
     def __init__(self):
         pygame.init()
@@ -104,6 +114,7 @@ class Game:
         self.load_high_score()
         self.reset_game()
     def load_high_score(self):
+        # Load high score 
         try:
             if os.path.exists("highscore.json"):
                 with open("highscore.json", "r") as file:
@@ -114,10 +125,12 @@ class Game:
         except:
             self.high_score=0
     def save_high_score(self):
+        # save high score in json file 
         with open("highscore.json", "w") as file:
             json.dump({'high_score': self.high_score},file)
 
     def reset_game(self):
+        # Reset game state
         self.level = 1
         self.score=0
         self.lives=3
@@ -126,6 +139,7 @@ class Game:
         self.create_brick()
 
     def handle_brick_collision(self):
+        # Handle brick collision with the ball and update the score and lives
         for brick in self.bricks[:]:
             if self.ball.rect.colliderect(brick.rect):
                 self.bricks.remove(brick)
@@ -145,6 +159,7 @@ class Game:
         return False
 
     def create_brick(self,rows=5,coloumns=10):
+        # Creating bricks 
         rows = min(5 + self.level - 1, 10)
         columns = 10
         start_x = (GameConfig.WIDTH - (columns * (GameConfig.BRICK_WIDTH + GameConfig.BRICK_PADDING))) // 2
@@ -159,6 +174,7 @@ class Game:
 
 
     def show_message(self,message):
+        # display message on the screen 
         screen.fill(BG_color)
         text = self.font.render(message, True, Colors.WHITE)
         screen.blit(text, (GameConfig.WIDTH // 2 - 100, GameConfig.HEIGHT // 2))
